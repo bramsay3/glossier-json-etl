@@ -12,7 +12,7 @@ class PSQL_Manager:
                        ):
 
         try:
-            conn = psy.connect(
+            self.conn = psy.connect(
                 dbname = dbname,
                 user = user,
                 password = password,
@@ -21,7 +21,7 @@ class PSQL_Manager:
                 )
         except:
             print("Unable to connect to database")
-        self.cur = conn.cursor()
+        self.cur = self.conn.cursor()
 
     def populate_orders(self, json_order):
         self.create_order_table()
@@ -29,7 +29,7 @@ class PSQL_Manager:
 
     def create_order_table(self):
         create_orders_query = ("CREATE TABLE IF NOT EXISTS orders ("
-                                "order_id integer,"
+                                "order_id bigint,"
                                 "order_json json"
                                 ");")
         self.cur.execute(create_orders_query)
@@ -40,12 +40,16 @@ class PSQL_Manager:
         an array of order information.
         """
 
-        insert_order_query = ("WITH all_orders (order_data) AS (SELECT * FROM json_array_elements(%s::json->'orders'))"
-                        "INSERT into orders (order_id, order_json VALUES"
-                        "(SELECT * FROM all_orders),"
-                        "(SELECT order_data->'id' FROM all_orders))")
-
-        self.cur.execute(insert_order_query, (json,)
+        insert_order_query = ("WITH all_orders (order_info) AS (SELECT * FROM json_array_elements(%s::json->'orders')) "
+                        "INSERT INTO orders (order_id, order_json) "
+                        "(SELECT CAST(order_info->>'id' AS bigint), * FROM all_orders);")
+        query = self.cur.mogrify(insert_order_query, (json,))
+        try:
+            self.cur.execute(query)
+        except psy.Error as e:
+            print(e.pgerror)
+        except:
+            print("Following query failed: \n", query)
 
 
 
