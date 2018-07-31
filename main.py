@@ -6,6 +6,8 @@ import os
 
 man = PSQL_Manager()
 man.create_order_table()
+
+#orders directory has all of the previous json orders
 prev_orders = os.listdir('orders')
 
 #load in order data retroactively
@@ -16,13 +18,6 @@ for day_order in prev_orders:
     man.conn.commit()
 
 #compute BI metrics on previous orders
-man.create_user_table()
-man.extract_user_data()
-man.conn.commit()
-
-
-from psql_json import PSQL_Manager
-man = PSQL_Manager()
 man.create_user_table()
 man.extract_user_data()
 man.conn.commit()

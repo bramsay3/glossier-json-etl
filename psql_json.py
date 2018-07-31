@@ -42,7 +42,7 @@ class PSQL_Manager:
         """
         create_orders_query = ("CREATE TABLE IF NOT EXISTS orders ("
                                 "order_id bigint,"
-                                "order_json json"
+                                "order_json jsonb"
                                 ");")
         self.run_query(create_orders_query)
 
@@ -52,7 +52,7 @@ class PSQL_Manager:
         an array of order information.
         """
 
-        insert_order_query = ("WITH all_orders (order_info) AS (SELECT * FROM json_array_elements(%s::json->'orders')) "
+        insert_order_query = ("WITH all_orders (order_info) AS (SELECT * FROM jsonb_array_elements(%s::jsonb->'orders')) "
                               "INSERT INTO orders (order_id, order_json) "
                               "(SELECT CAST(order_info->>'id' AS bigint), * FROM all_orders);")
         query = self.cur.mogrify(insert_order_query, (json,)) # so that we can avoid SQL injection attacks if need be
@@ -89,13 +89,18 @@ class PSQL_Manager:
                             "products/purchases::float, spent_amt/purchases::float "
                             "FROM (SELECT user_id, SUM(items.qty) AS products, "
                             "count(*) AS purchases, "
-                            "SUM(CAST(order_json->>'total_price' AS decimal)) AS spent_amt "
-                            "FROM orders, ("
-                            "SELECT CAST(order_json->>'user_id' as bigint) as user_id, "
-                            "CAST(json_array_elements(order_json->'line_items')->>'quantity' as smallint) as qty "
+                            "SUM(prices) AS spent_amt "
+                            "FROM ("
+                            "SELECT CAST(order_json->>'user_id' AS bigint) AS user_id, "
+                            "CAST(order_json->>'total_price' AS decimal) AS prices, "
+                            "CAST(jsonb_array_elements(order_json->'line_items')->>'quantity' as smallint) as qty "
                             "FROM orders) as items "
                             "GROUP BY user_id) AS per_user")
         self.run_query(user_order_query)
+
+    def drop_user_table(self):
+        drop_orders_query = ("DROP TABLE users;")
+        self.run_query(drop_orders_query)
 
 
 
