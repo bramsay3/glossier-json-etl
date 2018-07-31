@@ -23,9 +23,17 @@ class PSQL_Manager:
             print("Unable to connect to database")
         self.cur = self.conn.cursor()
 
-    def populate_orders(self, json_order):
-        self.create_order_table()
-        self.insert_order_json(json_order)
+    def run_query(self, query_statment):
+        try:
+            self.cur.execute(query_statment)
+        except psy.Error as e:
+            print(e.pgerror)
+            self.conn.rollback()
+            self.conn.close()
+        except:
+            print("Following query failed: \n", query_statment)
+            self.conn.rollback()
+            self.conn.close()
 
     def create_order_table(self):
         """
@@ -36,7 +44,7 @@ class PSQL_Manager:
                                 "order_id bigint,"
                                 "order_json json"
                                 ");")
-        self.cur.execute(create_orders_query)
+        self.run_query(create_orders_query)
 
     def insert_order_json(self, json):
         """
@@ -48,30 +56,11 @@ class PSQL_Manager:
                               "INSERT INTO orders (order_id, order_json) "
                               "(SELECT CAST(order_info->>'id' AS bigint), * FROM all_orders);")
         query = self.cur.mogrify(insert_order_query, (json,)) # so that we can avoid SQL injection attacks if need be
-        try:
-            self.cur.execute(query)
-        except psy.Error as e:
-            print(e.pgerror)
-            self.conn.rollback()
-            self.conn.close()
-        except:
-            print("Following query failed: \n", query)
-            self.conn.rollback()
-            self.conn.close()
+        self.run_query(query)
 
     def drop_order_table(self):
         drop_orders_query = ("DROP TABLE orders;")
-
-        try:
-            self.cur.execute(drop_orders_query)
-        except psy.Error as e:
-            print(e.pgerror)
-            self.conn.rollback()
-            self.conn.close()
-        except:
-            print("Following query failed: \n", query)
-            self.conn.rollback()
-            self.conn.close()
+        self.run_query(drop_orders_query)
 
     def create_user_table(self):
         """
@@ -86,7 +75,7 @@ class PSQL_Manager:
                                 "products_per_purchase decimal,"
                                 "expenditure_per_purchase decimal,"
                                 "PRIMARY KEY(user_id));")
-        self.cur.execute(create_orders_query)
+        self.run_query(create_orders_query)
 
     def extract_user_data(self):
         """
@@ -106,17 +95,7 @@ class PSQL_Manager:
                             "CAST(json_array_elements(order_json->'line_items')->>'quantity' as smallint) as qty "
                             "FROM orders) as items "
                             "GROUP BY user_id) AS per_user")
-
-        try:
-            self.cur.execute(user_order_query)
-        except psy.Error as e:
-            print(e.pgerror)
-            self.conn.rollback()
-            self.conn.close()
-        except:
-            print("Following query failed: \n", query)
-            self.conn.rollback()
-            self.conn.close()
+        self.run_query(user_order_query)
 
 
 
