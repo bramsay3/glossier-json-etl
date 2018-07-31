@@ -19,5 +19,11 @@ Storing data using RDBMS grants great querying capabilites but PostreSQL has dev
 
 ### JSON vs JSONB
 
+JSON format files may be represented in either an text form(JSON) or a binary form(JSONB). Each form has tradeoffs. JSON is slightly fast for insertions than JSONB since JSONB has the overhead of needing to be converted from text to binary. However JSONB is faster for querying and comes with some added functionality to check subsets that pure text JSON doesn't have.
+
+
+
+
+
 
 

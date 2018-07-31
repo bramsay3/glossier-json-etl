@@ -53,9 +53,11 @@ class PSQL_Manager:
         except psy.Error as e:
             print(e.pgerror)
             self.conn.rollback()
+            self.conn.close()
         except:
             print("Following query failed: \n", query)
             self.conn.rollback()
+            self.conn.close()
 
     def drop_order_table(self):
         drop_orders_query = ("DROP TABLE orders;")
@@ -65,9 +67,11 @@ class PSQL_Manager:
         except psy.Error as e:
             print(e.pgerror)
             self.conn.rollback()
+            self.conn.close()
         except:
             print("Following query failed: \n", query)
             self.conn.rollback()
+            self.conn.close()
 
     def create_user_table(self):
         """
@@ -108,9 +112,11 @@ class PSQL_Manager:
         except psy.Error as e:
             print(e.pgerror)
             self.conn.rollback()
+            self.conn.close()
         except:
             print("Following query failed: \n", query)
             self.conn.rollback()
+            self.conn.close()
 
 
 
