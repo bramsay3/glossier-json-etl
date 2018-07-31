@@ -26,11 +26,12 @@ The time to insert the data is not as important as the ability to query quicky c
 ## User Data
 
 As instructed we were to queary the orders for summary metrics that business analysts would find usful. I settled on calculating the following for every user:
-*total products bought
-*total purchases made
-*amount of money spent
-*products bought per purchase
-*money spent per purchase
+
+* total products bought
+* total purchases made
+* amount of money spent
+* products bought per purchase
+* money spent per purchase
 
 These fields were stored along with the user_ID so that they may be joined with any user information contained in on ther relational tables involving user_ID
 
